@@ -1,0 +1,50 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+
+<head>
+	<link rel="stylesheet" href="{% static "assets/css/commonStyleSheet.css" %}" type="text/css"> </link>
+	<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
+</head>
+
+<body>
+
+<header>
+<h1>Please enter the following details to create an homework</h1>
+</header>
+
+<section>
+	<form action="/gradiance/course/{{ course }}/add_homework/" method="post" > {% csrf_token %}
+        <label> Homework Number : </label><input type="text" name="homeworkid" placeholder="Ex : CSC540_<hw number>" ><br><br>
+    	<label> Start Date : </label><input type="date" name="startdate" placeholder="Start Date" ><br><br>
+    	<label> End Date : </label><input type="date" name="enddate" placeholder="End Date"><br><br>
+    	<label> Number of attempts : </label><input type="text" name="numberattempts" placeholder="Number of attempts"><br><br>
+    	<label> Minimum Difficulty : </label>
+        <select name="mindiff" id="mindiff">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+        </select><br><br>
+        <label> Maximum Difficulty : </label>
+        <select name="maxdiff" id="maxdiff">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+        </select><br><br>
+        <label> Correct Answer Points : </label><input type="text" name="correctpoints" placeholder="Correct answer Points"><br><br>
+        <label> Wrong Answer Points : </label><input type="text" name="wrongpoints" placeholder="Wrong Answer Points"><br><br>
+    	
+		<input type="submit" name="add_homework" value="Add"><br><br>
+  	</form>
+  	<a href="/gradiance/course/get/{{ course }}/">Cancel</a>
+</section>
+
+</body>
+</html>
+

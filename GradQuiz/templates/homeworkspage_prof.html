@@ -1,0 +1,42 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+
+<head>
+	<link rel="stylesheet" href="{% static "assets/css/commonStyleSheet.css" %}" type="text/css"> </link>
+</head>
+
+<body>
+
+<header>
+<h1>Homeworks in course {{ course }} listed below :</h1>
+</header>
+
+<nav>
+<a href="/gradiance/main_page/">Home</a><br>
+<a href="/gradiance/logout/">Logout</a><br>
+</nav>
+
+<section>
+<p>
+
+	{% if homeworkList.count > 0 %}
+		Here's the list of courses you have enrolled: <br><br>
+		Select one of the courses from the below list to see the homeworks.
+		{% for homework in homeworkList%}
+			<div>
+				<h3> <a href="/gradiance/course/homework/get/{{ homework }}/">Homework {{ homework }} </a></h3>
+			</div>
+		{% endfor %}
+	{% else %}
+		<p> Sorry .. You Don't have any homeworks in this course right now </p>
+
+	{% endif %}
+
+	<a href="/gradiance/course/create_homework/">Create Homework</a>
+</p>
+</section>
+
+</body>
+</html>
+

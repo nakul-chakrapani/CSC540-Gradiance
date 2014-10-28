@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<link rel="stylesheet" href="default.css"> </link>
+</head>
+
+<body>
+
+<header>
+<h1>Hello User !!! Welcome to Gradiance</h1>
+</header>
+
+<nav>
+<a href="/gradiance/main_page/">Home</a><br>
+<a href="/gradiance/main_page/">Homeworks</a><br>
+<a href="/gradiance/main_page/">Logout</a><br>
+</nav>
+
+<section>
+<p>
+ Gradiance is a tool to test your knowledge on the subjects you have taken.
+ So let's get started. Pick a homework from 'homeworks' section.
+</p>
+<p>
+
+</p>
+</section>
+
+</body>
+</html>
+

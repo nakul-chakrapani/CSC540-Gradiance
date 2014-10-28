@@ -1,0 +1,33 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+
+<head>
+	<link rel="stylesheet" href="{% static "assets/css/commonStyleSheet.css" %}" type="text/css"> </link>
+</head>
+
+<body>
+
+<header>
+<h1>Hello {{ userid }} !!! Welcome to Gradiance</h1>
+</header>
+
+<nav>
+<a href="/gradiance/main_page/">Home</a><br>
+<a href="/gradiance/student/select_course/">Select Course</a><br>
+<a href="/gradiance/student/add_course/">Add Course</a><br>
+<a href="/gradiance/logout/">Logout</a><br>
+</nav>
+
+<section>
+<p>
+ Gradiance is a tool to test your knowledge on the subjects you have taken.
+ So let's get started. Select a course or Add a course and try to solve a homework 
+ of that course.
+</p>
+
+</section>
+
+</body>
+</html>
+

@@ -1,0 +1,26 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+
+<head>
+	<link rel="stylesheet" href="{% static "assets/css/commonStyleSheet.css" %}" type="text/css"> </link>
+	<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
+</head>
+
+<body>
+
+<header>
+<h1>Please enter the token of the course {{ course }} to get enrolled : </h1>
+</header>
+
+<section>
+	<form action="/gradiance/student/course/enroll/{{ course }}/authorize/" method="post" > {% csrf_token %}
+        <label> Enter Token number : </label><input type="text" name="token" placeholder="Token number" ><br><br>
+		<input type="submit" name="enroll" value="Enroll"><br><br>
+  	</form>
+  	<a href="/gradiance/student/add_course/">Cancel</a>
+</section>
+
+</body>
+</html>
+

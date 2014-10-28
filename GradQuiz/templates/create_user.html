@@ -1,0 +1,37 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+
+<head>
+	<link rel="stylesheet" href="{% static "assets/css/commonStyleSheet.css" %}" type="text/css"> </link>
+	<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
+	<script src="{% static "assets/js/jquery.js" %}"></script>
+    <script src="{% static "assets/js/js.js" %}"></script>
+</head>
+
+<body>
+
+<header>
+<h1>Please enter the following details to create an account in Gradiance</h1>
+</header>
+
+<section>
+	<form action="/gradiance/create_user/" method="post" > {% csrf_token %}
+    	<label> User Id : </label><input type="text" name="user" placeholder="Username" ><br><br>
+    	<label> Full name : </label><input type="text" name="fullname" placeholder="Full Name"><br><br>
+    	<label> Enter a password : </label><input type="password" name="pass" placeholder="Password"><br><br>
+    	<label> Repeat password : </label><input type="password" name="passagain" placeholder="Password Again"><br><br>
+    	<label> User Type : </label><select name="userType" id="userType"><br><br>
+    		<option value="None"></option>
+			<option value="student">Student</option>
+			<option value="professor">Professor</option>
+		</select>
+		<br><br><label style="display:none" id="levelSelectLabel"> Enter Level : </label><input style="display:none" id="levelSelect" type="text" name="level" placeHolder="TA/non-TA"><br><br>
+    	<input type="submit" name="create" value="Create"><br><br>
+  	</form>
+  	<a href="/gradiance/login/">Cancel</a>
+</section>
+
+</body>
+</html>
+

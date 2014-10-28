@@ -1,0 +1,40 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+
+<head>
+	<link rel="stylesheet" href="{% static "assets/css/commonStyleSheet.css" %}" type="text/css"> </link>
+</head>
+
+<body>
+
+<header>
+<h1>Hello {{ userid }} !!! Welcome to Gradiance</h1>
+</header>
+
+<nav>
+<a href="/gradiance/main_page/">Home</a><br>
+<a href="/gradiance/logout/">Logout</a><br>
+</nav>
+
+<section>
+<p>
+	
+	{% if courses|length > 0 %}
+		Here's the list of courses you have enrolled:  <br><br>
+		Select one of the courses from the below list to see the homeworks.
+		{% for course in courses%}
+			<div>
+				<h3> <a href="/gradiance/student/course/get/{{ course }}/">{{ course }} </a></h3>
+			</div>
+		{% endfor %}
+	{% else %}
+		<p> Sorry .. You have not enrolled in any course </p>
+
+	{% endif %}
+</p>
+</section>
+
+</body>
+</html>
+

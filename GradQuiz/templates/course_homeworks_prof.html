@@ -1,0 +1,39 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+
+<head>
+	<link rel="stylesheet" href="{% static "assets/css/commonStyleSheet.css" %}" type="text/css"> </link>
+</head>
+
+<body>
+
+<header>
+<h1>Homeworks in course {{ course }} listed below :</h1>
+</header>
+
+<nav>
+<a href="/gradiance/main_page/">Home</a><br>
+<a href="/gradiance/logout/">Logout</a><br>
+</nav>
+
+<section>
+<p>
+
+	{% if homeworks.count > 0 %}
+		Here's the list of homeworks: <br><br>
+		{% for homework in homeworks%}
+			<div>
+				<h3> <a href="/gradiance/course/{{ course }}/addremove_questions_homework/{{ homework }}/">Homework {{ homework }} </a></h3>
+			</div>
+		{% endfor %}
+	{% else %}
+		<p> Sorry .. You Don't have any homeworks in this course right now </p>
+
+	{% endif %}
+</p>
+</section>
+
+</body>
+</html>
+

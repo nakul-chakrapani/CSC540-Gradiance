@@ -1,0 +1,34 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+
+<head>
+	<link rel="stylesheet" href="{% static "assets/css/commonStyleSheet.css" %}" type="text/css"> </link>
+</head>
+
+<body>
+
+<header>
+	<h1>Course Id : {{ course }} </h1>
+</header>
+
+<nav>
+<a href="/gradiance/main_page/">Home</a><br>
+<a href="/gradiance/course/{{ course }}/add_homework/">Add Homework</a><br>
+<a href="/gradiance/course/{{ course }}/addremove_questions_homework/">Add/Remove questions to Homework</a><br>
+<a href="/gradiance/course/{{ course }}/edit_homeworks/">Edit a Homework</a><br>
+<a href="/gradiance/course/{{ course }}/view_homeworks/">View Homeworks</a><br>
+<a href="/gradiance/course/{{ course }}/view_notifications/">View Notifications</a><br>
+<a href="/gradiance/course/{{ course }}/reports/">Reports</a><br>
+<a href="/gradiance/logout/">Logout</a><br>
+</nav>
+
+<section>
+<p>
+	<h1>Please select an option from left</h1>
+</p>
+</section>
+
+</body>
+</html>
+

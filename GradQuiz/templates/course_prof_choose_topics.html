@@ -1,0 +1,44 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+
+<head>
+	<link rel="stylesheet" href="{% static "assets/css/commonStyleSheet.css" %}" type="text/css"> </link>
+</head>
+
+<body>
+
+<header>
+<h1>Topics in course {{ course }} listed below :</h1>
+</header>
+
+<nav>
+<a href="/gradiance/main_page/">Home</a><br>
+<a href="/gradiance/logout/">Logout</a><br>
+</nav>
+
+<section>
+<p>
+
+	{% if topicsList.count > 0 %}
+		Here's the list of Topics: <br><br>
+		Please choose topics from this list to select questions:
+		<form action="/gradiance/course/{{course}}/homework/{{homework}}/display_questions/" method="post"> {% csrf_token %}
+			{% for topic in topicsList%}
+				<div>
+					<input type="checkbox" name="topic" value="{{ topic }}"> {{ topic }}
+				</div>
+			{% endfor %}
+			<input type="submit" name="selectTopic" value="Select Questions">
+		</form>
+		
+	{% else %}
+		<p> Sorry .. Seems like this course doesn't have any topics associated with it </p>
+
+	{% endif %}
+</p>
+</section>
+
+</body>
+</html>
+

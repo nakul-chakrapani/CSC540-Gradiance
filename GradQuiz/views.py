@@ -1,0 +1,422 @@
+from django.shortcuts import render
+from django.http import HttpResponse
+from django.template.loader import get_template
+from django.template import Context
+from django.shortcuts import render_to_response
+from django.views.generic.base import TemplateView
+from GradQuiz.models import Student, Professor, CourseStudent, Course, Homework, Questionbank, QuestionbankHomework
+from django.http import HttpResponseRedirect
+from django.core.context_processors import csrf
+
+from django.template import RequestContext
+from django.contrib import messages
+from django.utils import timezone
+from django.conf import settings
+from django.db import connection
+from django.db.models import Q
+import datetime
+
+def login(request):
+	args = {}
+	args.update(csrf(request))
+	return render_to_response('login.html', args)
+
+def invalid_login(request):
+	args = {}
+	args.update(csrf(request))
+	return render_to_response('invalid_login.html', args)
+
+def user_authentication(request):
+	userFound = False
+	userType = ""
+	
+	if request.method == 'POST':
+		userid = request.POST.get('user')
+		pwd = request.POST.get('pass')
+
+		user = Student.objects.filter(Q(student_uid=userid) & Q(student_password=pwd))
+		print user
+		if len(user) > 0:
+			userFound = True
+			userType = "Student"
+			request.session["userid"] = userid
+			request.session["userType"] = userType
+		else:
+			user = Professor.objects.filter(Q(professor_uid=userid) & Q(professor_password=pwd))
+			if len(user) > 0:
+				userFound = True
+				userType = "Professor"
+				request.session["userid"] = userid
+				request.session["userType"] = userType
+
+		if userFound:
+			return HttpResponseRedirect('/gradiance/main_page/')
+		else:
+			return HttpResponseRedirect('/gradiance/invalid_login/')
+
+def main_page_handler(request):
+	args = {}
+	args.update(csrf(request))
+	userid = request.session["userid"]
+	userType = request.session["userType"]
+	args['userid'] = userid
+
+	courses_list = []
+
+	if userType == 'Student':
+		courses = CourseStudent.objects.filter(course_student_uid__student_uid__contains=userid)
+		for course in courses.values('course_student_cid'):
+			courses_list.append(course['course_student_cid'])
+	else:
+		courses = Course.objects.filter(course_professor__professor_uid__contains=userid)
+		for course in courses.values('course_id'):
+			courses_list.append(course['course_id'])
+
+	args['courses'] = courses_list
+
+	if userType == 'Student':
+		return render_to_response('mainpage.html', args)
+	else:
+		return render_to_response('mainpage_prof.html', args)
+
+def logout_handler(request):
+	args = {}
+	args.update(csrf(request))
+
+	if request.session["userid"] is not None:
+		request.session["userid"] = None
+		request.session["userType"] = None
+
+	return HttpResponseRedirect('/gradiance/login/')
+
+def createuser_handler(request):
+	args = {}
+	args.update(csrf(request))
+	username = fullname = password = password1 = level = ""
+
+	if request.method == 'POST':
+
+		username = request.POST.get('user')
+		fullname = request.POST.get('fullname')
+		password = request.POST.get('pass')
+		password1 = request.POST.get('passagain')
+		
+		if password == password1:
+			if request.POST.get('userType') == 'student':
+				level = request.POST.get('level')
+				obj = Student(student_uid = username, student_password = password, student_name = fullname, student_level = level)
+				obj.save()
+			else:
+				obj = Professor(professor_uid = username, professor_password = password, professor_name = fullname)
+				obj.save()
+
+			return HttpResponseRedirect('/gradiance/login/')
+		else:
+			return HttpResponseRedirect('/gradiance/create_user/')
+	else:
+		return render_to_response('create_user.html', args)
+
+def get_course_homeworks_handler(request, course_id='CSC522'):
+	args = {}
+	args.update(csrf(request))
+
+	cursor = connection.cursor()
+	userid = request.session["userid"]
+
+	# query changes here
+	query = "select CH.hwid from course_student CS, coursehw CH where CS.csuid='" + userid + "' AND CS.cscid= '" + course_id + "';"
+	cursor.execute(query)
+
+	result = cursor.fetchall()
+	homeworkList = []
+
+	for item in result:
+		homeworkList.append(item[0])
+
+	args['homeworkList'] = homeworkList
+	args['course'] = course_id
+	cursor.close()
+
+	return render_to_response('homeworkspage.html', args)
+
+def course_profs_handler(request, course_id='CSC522'):
+	args = {}
+	args.update(csrf(request))
+
+	args['course'] = course_id
+	return render_to_response('coursepage_prof.html', args)
+
+def course_add_homework_handler(request, course_id='CSC522'):
+	args = {}
+	args.update(csrf(request))
+	args['course'] = course_id
+
+	homework_no = ""
+	start_date = end_date = ""
+	number_of_attempts = min_difficulty = max_difficulty = correct_answer_pts = wrong_answer_pts = 0
+
+	if request.method == 'POST':
+		homework_no = request.POST.get('homeworkid')
+		start_date = request.POST.get('startdate')
+		end_date = request.POST.get('enddate')
+		number_of_attempts = request.POST.get('numberattempts')
+		min_difficulty = request.POST.get('mindiff')
+		max_difficulty = request.POST.get('maxdiff')
+		correct_answer_pts = request.POST.get('correctpoints')
+		wrong_answer_pts = request.POST.get('wrongpoints')
+	
+		course = Course.objects.filter(course_id__contains = course_id)
+
+		obj = Homework(homework_id = homework_no, homework_startdate = start_date, homework_enddate = end_date, homework_numretries = number_of_attempts, homework_mindifficulty = min_difficulty, homework_maxdifficulty = max_difficulty, homework_correctanswerpts = correct_answer_pts, homework_wronganswerpts = wrong_answer_pts, homework_cid = course[0])
+
+		obj.save()
+
+		return HttpResponseRedirect('/gradiance/course/get/'+course_id+"/")
+	else:
+		return render_to_response('add_homework.html', args)
+
+def course_list_homeworks_handler(request, course_id='CSC522'):
+	args = {}
+	args.update(csrf(request))
+	args['course'] = course_id
+
+	homework_list = []
+	
+	homeworks = Homework.objects.filter(homework_cid__course_id__contains = course_id)
+	for homework in homeworks.values('homework_id'):
+			homework_list.append(homework['homework_id'])
+
+	args['homeworks'] = homework_list
+	
+	return render_to_response('course_homeworks_prof.html', args)
+
+def course_edit_homeworks_display_handler(request, course_id='CSC522'):
+	args = {}
+	args.update(csrf(request))
+	args['course'] = course_id
+
+	homework_list = []
+	
+	homeworks = Homework.objects.filter(homework_cid__course_id__contains = course_id)
+	for homework in homeworks.values('homework_id'):
+			homework_list.append(homework['homework_id'])
+
+	args['homeworks'] = homework_list
+	
+	return render_to_response('edit_homeworks_list_prof.html', args)
+
+def course_edit_homework_handler(request, course_id = 'CSC540', homework_id = 'CSC540_1'):
+	args = {}
+	args.update(csrf(request))
+	args['course'] = course_id	
+
+	if request.method == 'POST':
+		homework = Homework.objects.get(homework_id__contains = homework_id)
+		homework.homework_id = request.POST.get('homeworkid')
+		homework.homework_startdate = request.POST.get('startdate')
+		homework.homework_enddate = request.POST.get('enddate')
+		homework.homework_numretries = request.POST.get('numberattempts')
+		homework.homework_mindifficulty = request.POST.get('mindiff')
+		homework.homework_maxdifficulty = request.POST.get('maxdiff')
+		homework.homework_correctanswerpts = request.POST.get('correctpoints')
+		homework.homework_wronganswerpts = request.POST.get('wrongpoints')
+
+		homework.save()
+
+		return render_to_response('coursepage_prof.html', args)	
+	else:
+		homework = Homework.objects.filter(homework_cid__course_id__contains = course_id).filter(homework_id__contains = homework_id)
+		args['homework'] = homework[0].homework_id
+		args['startdate'] = homework[0].homework_startdate
+		args['enddate'] = homework[0].homework_enddate
+		args['numretries'] = homework[0].homework_numretries
+		args['mindifficulty'] = homework[0].homework_mindifficulty
+		args['maxdifficulty'] = homework[0].homework_maxdifficulty
+		args['correctanswerpts'] = homework[0].homework_correctanswerpts
+		args['wronganswerpts'] = homework[0].homework_wronganswerpts
+		args['cid'] = homework[0].homework_cid
+
+		return render_to_response('course_edit_homework_prof.html', args)
+
+def addremove_questions_to_homework_handler(request, course_id = 'CSC540', homework_id = 'CSC540_1'):
+	args = {}
+	args.update(csrf(request))
+	args['course'] = course_id	
+	args['homework'] = homework_id
+
+	cursor = connection.cursor()
+
+	query = "select CC.course_chapters_title from course_chapters CC where CC.course_chapters_cid='" + course_id + "';"
+	cursor.execute(query)
+
+	result = cursor.fetchall()
+	topicsList = []
+
+	for item in result:
+		topicsList.append(item[0])
+
+	args['topicsList'] = topicsList
+	args['course'] = course_id
+	cursor.close()
+
+	return render_to_response('course_prof_choose_topics.html', args)
+
+def course_topic_display_questions_handler(request, course_id = 'CSC540', homework_id = 'CSC540_1'):
+	args = {}
+	args.update(csrf(request))
+	args['course'] = course_id	
+	args['homework'] = homework_id
+
+	if request.method == 'POST':
+		topics_selected = request.POST.getlist('topic')
+
+		cursor = connection.cursor()
+		query = "select homework_mindifficulty, homework_maxdifficulty from homework where homework_id='" + homework_id + "';"
+		cursor.execute(query)
+	
+		result = cursor.fetchall()
+		mindifficulty = result[0][0]
+		maxdifficulty = result[0][1]
+		question_ids = []
+		question_texts = []
+	
+		for topic in topics_selected:
+			query = "select qb.questionbank_qid, qb.questionbank_text from questionbank qb where questionbank_level >= " + str(mindifficulty) + " AND questionbank_level <= " + str(maxdifficulty) + " AND questionbank_topic='" + topic +"';"
+			cursor.execute(query)
+			result = cursor.fetchall()
+
+			for row in result:
+				question_ids.append(row[0])
+				question_texts.append(row[1])
+
+		print zip(question_ids, question_texts)
+		args['questionsList'] = zip(question_ids, question_texts)
+		cursor.close()
+		
+		return render_to_response('course_select_questions.html', args)
+
+def homework_add_questions_handler(request, course_id = 'CSC540', homework_id = 'CSC540_1'):
+	args = {}
+	args.update(csrf(request))
+	args['course'] = course_id	
+	args['homework'] = homework_id
+
+	if request.method == 'POST':
+		questions_selected = request.POST.getlist('question')
+
+		for question in questions_selected:
+			qobj = Questionbank.objects.get(questionbank_qid__contains = question)
+			hwobj = Homework.objects.get(homework_id__contains = homework_id)
+			obj = QuestionbankHomework(questionbank_homework_qid = qobj, questionbank_homework_hwid = hwobj)
+			obj.save()
+		
+		return render_to_response('coursepage_prof.html', args)
+
+
+
+# STUDENT RELATED FUNCTION HANDLER
+def student_select_course_handler(request):
+	args = {}
+	args.update(csrf(request))
+	userid = request.session["userid"]
+	userType = request.session["userType"]
+	args['userid'] = userid
+
+	courses_list = []
+
+	if userType == 'Student':
+		courses = CourseStudent.objects.filter(course_student_uid__student_uid__contains=userid)
+		for course in courses.values('course_student_cid'):
+			courses_list.append(course['course_student_cid'])
+
+	args['courses'] = courses_list
+
+	return render_to_response('student_select_course.html', args)
+
+def student_course_display_details_handler(request, course_id='CSC540'):
+	args = {}
+	args.update(csrf(request))
+	userid = request.session["userid"]
+	args['userid'] = userid
+
+	homeworks_list = []
+
+def student_list_all_courses_to_enroll_handler(request):
+	args = {}
+	args.update(csrf(request))
+	userid = request.session["userid"]
+	args['userid'] = userid
+
+	courses_to_enroll = []
+	cursor = connection.cursor()
+	query = "select student_level from student where student_uid = '" + userid + "';"
+	cursor.execute(query)
+	result = cursor.fetchall()
+
+	courselevel = result[0][0]
+
+	query = "select c.course_id from course c, student s where s.student_uid = '" + userid + "' and s.student_level = c.course_level and c.course_id not in ( select course_student_cid from course_student where course_student_uid = '" + userid + "');"
+
+	cursor.execute(query)
+	result = cursor.fetchall()
+
+	for course in result:
+		courses_to_enroll.append(course[0])
+
+	cursor.close()
+	
+	args['courses'] = courses_to_enroll
+	
+	return render_to_response('student_enroll_courses.html', args)
+
+def student_enroll_to_course_handler(request, course_id='CSC540'):
+	args = {}
+	args.update(csrf(request))
+	userid = request.session["userid"]
+	args['userid'] = userid
+	args['course'] = course_id
+	
+	return render_to_response('student_enroll_add_token.html', args)
+
+def student_authorize_enroll_handler(request, course_id='CSC540'):
+	args = {}
+	args.update(csrf(request))
+	userid = request.session["userid"]
+	args['userid'] = userid
+	args['courseid'] = course_id
+	message = ""
+	today = datetime.datetime.now().date()
+
+	if request.method == 'POST':
+		token = request.POST.get('token')
+		course = Course.objects.filter(Q(course_id=course_id))
+		
+		if token != course[0].course_token:
+			message = "Please enter correct token"
+		elif course[0].course_maxenroll == course[0].course_numenrolled:
+			message = "Sorry , You are too late :(. Class is full, Better luck next time."
+		elif today > course[0].course_enddate:	
+			message = "Course is already over buddy :D , you cannot enroll now."
+		else:
+			message = "Congratulations !! You have now enrolled in the course " + course_id + ". Bring it on !!!"
+	
+		args['message'] = message
+		
+		# NEED TO UPDATE DATABASE HERE. SHOULD BE DONE AFTER TRIGGER QUERY IS WOTKING PROPERLY
+		return render_to_response('student_enroll_message.html', args)
+			
+	
+def display_homework_handler(request, homework_id=0):
+	args = {}
+	args.update(csrf(request))
+
+	cursor = connection.cursor()
+	userid = request.session["userid"]
+	
+	#Query changes
+	query = "select qwqid from qbhw where qwhwid=" + homework_id + ";"
+	cursor.execute(query)
+
+	result = cursor.fetchall()
+	homeworkQuestions = []
+	

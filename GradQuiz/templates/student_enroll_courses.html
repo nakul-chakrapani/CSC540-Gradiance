@@ -1,0 +1,40 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+
+<head>
+	<link rel="stylesheet" href="{% static "assets/css/commonStyleSheet.css" %}" type="text/css"> </link>
+</head>
+
+<body>
+
+<header>
+<h1>Hello {{ userid }} !!! Select a course to enroll : </h1>
+</header>
+
+<nav>
+<a href="/gradiance/main_page/">Home</a><br>
+<a href="/gradiance/logout/">Logout</a><br>
+</nav>
+
+<section>
+<p>
+	
+	{% if courses|length > 0 %}
+		Here's the list of courses you can enroll:  <br><br>
+		Select one of the courses from the below list:.
+		{% for course in courses%}
+			<div>
+				<h3> <a href="/gradiance/student/course/enroll/{{ course }}/">{{ course }} </a></h3>
+			</div>
+		{% endfor %}
+	{% else %}
+		<p> Sorry .. You can not enroll in any course </p>
+
+	{% endif %}
+</p>
+</section>
+
+</body>
+</html>
+

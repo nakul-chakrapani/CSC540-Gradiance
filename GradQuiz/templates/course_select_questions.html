@@ -1,0 +1,43 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+
+<head>
+	<link rel="stylesheet" href="{% static "assets/css/commonStyleSheet.css" %}" type="text/css"> </link>
+</head>
+
+<body>
+
+<header>
+<h1>Questions in topic {{ topic }} listed below :</h1>
+</header>
+
+<nav>
+<a href="/gradiance/main_page/">Home</a><br>
+<a href="/gradiance/logout/">Logout</a><br>
+</nav>
+
+<section>
+<p>
+
+	{% if questionsList.count > 0 %}
+		Here's the list of Questions: <br><br>
+		<form action="/gradiance/course/{{ course }}/homework/{{ homework }}/add_questions/" method="post"> {% csrf_token %}
+			{% for questionid,questiontext in questionsList%}
+				<div>
+					<input type="checkbox" name="question" value="{{ questionid }}"> {{ questiontext }}
+				</div>
+			{% endfor %}
+			<input type="submit" name="selectQuestions" value="Add to Homework">
+		</form>
+		
+	{% else %}
+		<p> Sorry .. Seems like this topic doesn't have any questions matching provided parameters </p>
+
+	{% endif %}
+</p>
+</section>
+
+</body>
+</html>
+

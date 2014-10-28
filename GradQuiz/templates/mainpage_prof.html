@@ -1,0 +1,44 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+
+<head>
+	<link rel="stylesheet" href="{% static "assets/css/commonStyleSheet.css" %}" type="text/css"> </link>
+</head>
+
+<body>
+
+<header>
+<h1>Hello {{ userid }} !!! Welcome to Gradiance</h1>
+</header>
+
+<nav>
+<a href="/gradiance/main_page/">Home</a><br>
+<a href="/gradiance/logout/">Logout</a><br>
+</nav>
+
+<section>
+<p>
+ Gradiance is a tool to test your students's knowledge on the subjects.
+ Please select one of your courses from the below list and create a homework.
+</p>
+<p>
+	
+	{% if courses|length > 0 %}
+		Here's the list of courses you are taking:  <br><br>
+		Select one of the courses from the below list to create homeworks for your students.
+		{% for course in courses%}
+			<div>
+				<h3> <a href="/gradiance/course/get/{{ course }}/">{{ course }} </a></h3>
+			</div>
+		{% endfor %}
+	{% else %}
+		<p> Sorry .. You are not taking any course this semester</p>
+
+	{% endif %}
+</p>
+</section>
+
+</body>
+</html>
+
